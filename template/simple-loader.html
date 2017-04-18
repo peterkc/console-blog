@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Loader</title>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <script src="simple-loader.js"></script>
+    <script>
+      SimpleLoader.define('sum', function(a, b) { return a + b; });
+      console.log(SimpleLoader.require('sum')(2,2));
+    </script>
+
+</head>
+<body>
+
+</body>
+</html>

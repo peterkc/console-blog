@@ -1,0 +1,50 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# General rules
+# ----------------------------------------------
+# - Unicode
+# - Unix-style line endings
+# - Newline before EOF
+# - No sloppy trailing spaces
+# - Two-space indentation
+
+# Unix-style newlines with a newline ending every file
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[package.json]
+indent_size = 2
+
+# Java
+# ----------------------------------------------
+[*.java]
+continuation_indent_size = 0
+indent_size = 4
+
+
+# GNU Make
+# ----------------------------------------------
+# Tab indentation (no size specified)
+[{Makefile, makefile, GNUmakefile,*.mk}]
+indent_style = tab
+
+
+# Markdown
+# ----------------------------------------------
+[*.md]
+trim_trailing_whitespace = false
+
+
+# Python
+# ----------------------------------------------
+# 4 space indentation
+[*.py]
+indent_size = 4
