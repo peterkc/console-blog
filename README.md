@@ -1,4 +1,4 @@
-# CLI Blog Simulator and Simple Loader
+# Coding Challenge
 
 ## Requirements
  
@@ -36,5 +36,13 @@ This `make` target will transpile related ES6 files and generate a CommonJS modu
 This `make` target will transpile related ES6 files and use webpack to generate a compatible file for use in a browser.
 
 
+### Tests
+
+```
+> make test
+```
+
+
 [node]: http://slashdot.org
 [brew]: https://brew.sh/
+

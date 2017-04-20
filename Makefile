@@ -65,7 +65,7 @@ clean:
 
 
 # ------------------------------------------------------------------------------
-.PHONY: lint outdated upgrade test
+.PHONY: lint outdated upgrade
 
 lint:
 	$(ESLINT) src
@@ -76,30 +76,34 @@ outdated:
 upgrade:
 	$(NCU) -a
 
-test: build
-test:
-	$(JEST) $(TEST)
-
 # ------------------------------------------------------------------------------
 .PHONY: all
 
 all: install
 #all: lint
 all: clean
-all: lib/blog.js
-all: lib/loader.js
+all: blog
+all: loader
+all: test
 
 # ------------------------------------------------------------------------------
-.PHONY: blog loader dist
+.PHONY: blog loader test
 
 blog: lib/blog.js
+	@echo -e "$(P) testing loader"
+	$(JEST) --bail --testPathPattern=$@.spec.js
 
 loader: lib/loader.js
 loader:
 	@echo -e "$(P) bulding loader"
-	$(JEST) test/$@.spec.js
+	$(JEST) --bail --testPathPattern=$@.spec.js
 	@echo
 	$(WEBPACK)
 	@echo
 	cp -fv template/*.html dist/
 	@echo -e "$(P) Done."
+
+test: lib/blog.js
+test: lib/loader.js
+test:
+	$(JEST) --coverage

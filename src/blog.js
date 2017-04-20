@@ -12,8 +12,11 @@ const HTTP = {
   POST: 'POST'
 };
 
-const trace = debug('blog');
-const argv = minimist(process.argv.slice(2));
+const trace  = debug('blog');
+const argv   = minimist(process.argv.slice(2));
+
+/* istanbul ignore next  */
+const silent = __SILENT__? true : !!argv.silent;
 
 /**
  *
@@ -37,8 +40,35 @@ async function api(endpoint, method, data) {
 
   trace(`${url} ${opt.method}`);
 
-  const res    = await fetch(url, opt).catch(err => console.error(err));
-  return await res.json();
+  const res = await fetch(url, opt)
+    .catch( (err) => {
+      const msg = `Error fetching [${url}]: \nReason: ${err.message}`;
+      /* istanbul ignore next  */
+      if (!silent) console.log(msg);
+
+      return { json: {}, error: msg }
+    });
+
+  const json   = typeof(res.json) === 'function' ? (await res.json()) : res.json;
+
+  return {
+    endpoint: endpoint,
+    method  : method,
+    option  : opt,
+    response: res,
+    json    : json,
+    error   : res.error
+  };
+}
+
+/**
+ * Console log message
+ *
+ * @param msg The string to output.
+ */
+/* istanbul ignore next  */
+function print(msg) {
+  if (!silent) console.log(msg);
 }
 
 
@@ -50,12 +80,13 @@ async function api(endpoint, method, data) {
  */
 async function getUser(userId) {
   const user  = await api(`users/${userId}`);
+  const json  = user.json;
 
   const msg = `
-${user.name} (${user.email})`;
+${json.name} (${json.email})`;
 
-  console.log(msg);
-  return user;
+  print(msg);
+  return json;
 }
 
 
@@ -70,16 +101,16 @@ async function showSummary(user) {
   const albums = await api(`albums?userId=${user.id}`);
   const todos  = await api(`todos?userId=${user.id}`);
 
-  const msg = [`  
-@${user.username} has ${posts.length} posts, ${albums.length} albums, and ${todos.length} todos
+  const msg = [`
+@${user.username} has ${posts.json.length} posts, ${albums.json.length} albums, and ${todos.json.length} todos
 
 Posts:`];
 
-  posts.forEach( (item) => msg.push(`Post ${item.id}: ${item.title}`) );
+  // posts.json.forEach( (item) => msg.push(`Post ${item.id}: ${item.title}`) );
 
-  console.log(msg.join('\n'));
+  print(msg.join('\n'));
 
-  return { posts: posts, albums: albums, todos: todos };
+  return { posts: posts.json, albums: albums.json, todos: todos.json };
 }
 
 
@@ -92,21 +123,22 @@ Posts:`];
  */
 async function showPost(user, post) {
   const comment = await api(`comments?userId=${user.id}&postId=${post.id}`);
+  const json    = comment.json;
 
-  const msg = [`  
-Viewing post "${post.title}" which has ${comment.length} comments.  
+  const msg = [`
+Viewing post "${post.title}" which has ${json.length} comments.
 
 Comments:`];
 
-  comment.forEach( (item) => {
+  json.forEach( (item) => {
     msg.push(`${item.id} [${item.email}]: ${item.name} `);
     msg.push(`${item.body.replace(/\n/g, '')}`);
     msg.push('');
   });
 
-  console.log(msg.join('\n'));
+  print(msg.join('\n'));
 
-  return comment;
+  return json;
 }
 
 
@@ -120,21 +152,31 @@ Comments:`];
  */
 async function addComment(user, post, comment) {
   const data = {
-    name: post.title,
+    name : post.title,
     email: user.email,
-    body: comment
+    body : comment
   };
   const result = await api(`posts/${post.id}/comments?userId=${user.id}`, HTTP.POST, data);
-  // const json = await result.json();
+  const json = result.json;
 
   const msg = `
 You commented:
-${result.body}
+${json.body}
 `;
 
-  console.log(msg);
+  print(msg);
 
-  return result;
+  return json;
+}
+
+/* istanbul ignore next  */
+export {
+  api,
+  print,
+  getUser,
+  showSummary,
+  showPost,
+  addComment
 }
 
 
@@ -142,20 +184,22 @@ ${result.body}
  * Start simulation
  */
 /* istanbul ignore next  */
-(async function () {
-  // Get user by ID
-  const user = await getUser(argv.user ? argv.user : 1);
+if (require.main === module) {
+  (async function () {
+    // Get user by ID
+    const user = await getUser(argv.user ? argv.user : 1);
 
-  // Show user summary and posts
-  const data = await showSummary(user);
+    // Show user summary and posts
+    const data = await showSummary(user);
 
-  // Wait 5 secs
-  await sleep(5000);
+    // Wait 5 secs
+    await sleep(5000);
 
-  // Show comment
-  const post = data.posts[4];
-  await showPost(user, post);
+    // Show comment
+    const post = data.posts[4];
+    await showPost(user, post);
 
-  await sleep(1000);
-  await addComment(user, post, 'Great post!');
-})();
+    await sleep(1000);
+    await addComment(user, post, 'Great post!');
+  })();
+}

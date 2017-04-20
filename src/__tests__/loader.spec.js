@@ -1,4 +1,4 @@
-import * as loader from '../src/loader';
+import * as loader from '../loader';
 
 
 beforeEach(() => {
